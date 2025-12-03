@@ -1,0 +1,1 @@
+This project is a Python desktop application that allows users to track books borrowed by students. Users can add, delete, and clear records, view all borrowed books in a table, and see the total number of books borrowed. The application uses SQLite to store data and Tkinter for the graphical interface
