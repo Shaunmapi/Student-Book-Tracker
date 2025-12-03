@@ -1,1 +1,103 @@
+import sqlite3
+import tkinter as tk
+from tkinter import ttk
+from datetime import datetime
+
+conn = sqlite3.connect(r"C:\Users\shaun\OneDrive\python\New folder\warehouse\warehouse.db")
+cur = conn.cursor()
+
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS borrowed_books (
+        ID INTEGER PRIMARY KEY,
+        Student_Name TEXT NOT NULL,
+        Book_ID TEXT NOT NULL,
+        borrow_date TEXT,
+        return_date TEXT,
+        fine FLOAT
+    )
+''')
+conn.commit()
+conn.close()
+
+window = tk.Tk()
+window.title("Student Book Tracker")
+window.geometry("800x400")
+window.config(bg="light grey")
+
+leftFrame = tk.Frame(window, bg="light grey", width=300)
+leftFrame.pack(side="left", fill="y", padx=10, pady=10)
+
+tk.Label(leftFrame, text="Student Name:", bg="light grey").pack(anchor="w", pady=(0,2))
+studentEntry = tk.Entry(leftFrame, width=30)
+studentEntry.pack(pady=5)
+
+tk.Label(leftFrame, text="Book:", bg="light grey").pack(anchor="w", pady=(5,2))
+bookEntry = tk.Entry(leftFrame, width=30)
+bookEntry.pack(pady=5)
+
+dateFormat = "%m/%d/%y"
+tk.Label(leftFrame, text="Borrow Date:", bg="light grey").pack(anchor="w", pady=(5,2))
+borrowVar = tk.StringVar(value=datetime.today().strftime(dateFormat))
+borrowDate = ttk.Combobox(leftFrame, textvariable=borrowVar, width=28)
+borrowDate.pack(pady=5)
+
+tk.Label(leftFrame, text="Return Date:", bg="light grey").pack(anchor="w", pady=(5,2))
+returnVar = tk.StringVar(value=datetime.today().strftime(dateFormat))
+returnDate = ttk.Combobox(leftFrame, textvariable=returnVar, width=28)
+returnDate.pack(pady=5)
+
+counter = 0
+
+def addRecord():
+    global counter
+    counter += 1
+    tree.insert("", "end", values=(counter, studentEntry.get(), bookEntry.get(),
+                                   borrowDate.get(), returnDate.get(), 0))
+    totalVar.set(f"Total Borrowed Books: {len(tree.get_children())}")
+
+def deleteRecord():
+    selected = tree.selection()
+    if selected:
+        for item in selected:
+            tree.delete(item)
+    totalVar.set(f"Total Borrowed Books: {len(tree.get_children())}")
+
+def clearEntries():
+    studentEntry.delete(0, tk.END)
+    bookEntry.delete(0, tk.END)
+    borrowVar.set(datetime.today().strftime(dateFormat))
+    returnVar.set(datetime.today().strftime(dateFormat))
+
+tk.Button(leftFrame, text="Add", command=addRecord, bg="green", fg="white", width=10).pack(pady=5)
+tk.Button(leftFrame, text="Delete", command=deleteRecord, bg="red", fg="white", width=10).pack(pady=5)
+tk.Button(leftFrame, text="Clear", command=clearEntries, bg="grey", fg="white", width=10).pack(pady=5)
+
+rightFrame = tk.Frame(window)
+rightFrame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+
+tk.Label(rightFrame, text="Search:").pack(anchor="w")
+searchEntry = tk.Entry(rightFrame, width=30)
+searchEntry.pack(anchor="w", pady=(0,5))
+
+tree = ttk.Treeview(rightFrame, columns=("ID", "Student", "Book", "BorrowDate", 
+                                         "ReturnDate", "Fine"), show="headings")
+tree.heading("ID", text="ID")
+tree.heading("Student", text="Student")
+tree.heading("Book", text="Book")
+tree.heading("BorrowDate", text="Borrow Date")
+tree.heading("ReturnDate", text="Return Date")
+tree.heading("Fine", text="Fine")
+
+tree.column("ID", width=50)
+tree.column("Student", width=120)
+tree.column("Book", width=120)
+tree.column("BorrowDate", width=100)
+tree.column("ReturnDate", width=100)
+tree.column("Fine", width=50)
+tree.pack(fill="both", expand=True)
+
+totalVar = tk.StringVar(value="Total Borrowed Books: 0")
+tk.Label(rightFrame, textvariable=totalVar).pack(anchor="e", pady=5)
+
+window.mainloop()
 
