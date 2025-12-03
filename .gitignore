@@ -1,207 +1,102 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
+import sqlite3
+import tkinter as tk
+from tkinter import ttk
+from datetime import datetime
 
-# C extensions
-*.so
+conn = sqlite3.connect(r"C:\Users\shaun\OneDrive\python\New folder\warehouse\warehouse.db")
+cur = conn.cursor()
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS borrowed_books (
+        ID INTEGER PRIMARY KEY,
+        Student_Name TEXT NOT NULL,
+        Book_ID TEXT NOT NULL,
+        borrow_date TEXT,
+        return_date TEXT,
+        fine FLOAT
+    )
+''')
+conn.commit()
+conn.close()
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+window = tk.Tk()
+window.title("Student Book Tracker")
+window.geometry("800x400")
+window.config(bg="light grey")
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+leftFrame = tk.Frame(window, bg="light grey", width=300)
+leftFrame.pack(side="left", fill="y", padx=10, pady=10)
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py.cover
-.hypothesis/
-.pytest_cache/
-cover/
+tk.Label(leftFrame, text="Student Name:", bg="light grey").pack(anchor="w", pady=(0,2))
+studentEntry = tk.Entry(leftFrame, width=30)
+studentEntry.pack(pady=5)
 
-# Translations
-*.mo
-*.pot
+tk.Label(leftFrame, text="Book:", bg="light grey").pack(anchor="w", pady=(5,2))
+bookEntry = tk.Entry(leftFrame, width=30)
+bookEntry.pack(pady=5)
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+dateFormat = "%m/%d/%y"
+tk.Label(leftFrame, text="Borrow Date:", bg="light grey").pack(anchor="w", pady=(5,2))
+borrowVar = tk.StringVar(value=datetime.today().strftime(dateFormat))
+borrowDate = ttk.Combobox(leftFrame, textvariable=borrowVar, width=28)
+borrowDate.pack(pady=5)
 
-# Flask stuff:
-instance/
-.webassets-cache
+tk.Label(leftFrame, text="Return Date:", bg="light grey").pack(anchor="w", pady=(5,2))
+returnVar = tk.StringVar(value=datetime.today().strftime(dateFormat))
+returnDate = ttk.Combobox(leftFrame, textvariable=returnVar, width=28)
+returnDate.pack(pady=5)
 
-# Scrapy stuff:
-.scrapy
+counter = 0
 
-# Sphinx documentation
-docs/_build/
+def addRecord():
+    global counter
+    counter += 1
+    tree.insert("", "end", values=(counter, studentEntry.get(), bookEntry.get(),
+                                   borrowDate.get(), returnDate.get(), 0))
+    totalVar.set(f"Total Borrowed Books: {len(tree.get_children())}")
 
-# PyBuilder
-.pybuilder/
-target/
+def deleteRecord():
+    selected = tree.selection()
+    if selected:
+        for item in selected:
+            tree.delete(item)
+    totalVar.set(f"Total Borrowed Books: {len(tree.get_children())}")
 
-# Jupyter Notebook
-.ipynb_checkpoints
+def clearEntries():
+    studentEntry.delete(0, tk.END)
+    bookEntry.delete(0, tk.END)
+    borrowVar.set(datetime.today().strftime(dateFormat))
+    returnVar.set(datetime.today().strftime(dateFormat))
 
-# IPython
-profile_default/
-ipython_config.py
+tk.Button(leftFrame, text="Add", command=addRecord, bg="green", fg="white", width=10).pack(pady=5)
+tk.Button(leftFrame, text="Delete", command=deleteRecord, bg="red", fg="white", width=10).pack(pady=5)
+tk.Button(leftFrame, text="Clear", command=clearEntries, bg="grey", fg="white", width=10).pack(pady=5)
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+rightFrame = tk.Frame(window)
+rightFrame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
+tk.Label(rightFrame, text="Search:").pack(anchor="w")
+searchEntry = tk.Entry(rightFrame, width=30)
+searchEntry.pack(anchor="w", pady=(0,5))
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
+tree = ttk.Treeview(rightFrame, columns=("ID", "Student", "Book", "BorrowDate", 
+                                         "ReturnDate", "Fine"), show="headings")
+tree.heading("ID", text="ID")
+tree.heading("Student", text="Student")
+tree.heading("Book", text="Book")
+tree.heading("BorrowDate", text="Borrow Date")
+tree.heading("ReturnDate", text="Return Date")
+tree.heading("Fine", text="Fine")
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-#poetry.toml
+tree.column("ID", width=50)
+tree.column("Student", width=120)
+tree.column("Book", width=120)
+tree.column("BorrowDate", width=100)
+tree.column("ReturnDate", width=100)
+tree.column("Fine", width=50)
+tree.pack(fill="both", expand=True)
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
-#pdm.lock
-#pdm.toml
-.pdm-python
-.pdm-build/
+totalVar = tk.StringVar(value="Total Borrowed Books: 0")
+tk.Label(rightFrame, textvariable=totalVar).pack(anchor="e", pady=5)
 
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-#pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# Abstra
-# Abstra is an AI-powered process automation framework.
-# Ignore directories containing user credentials, local state, and settings.
-# Learn more at https://abstra.io/docs
-.abstra/
-
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
-.cursorignore
-.cursorindexingignore
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
+window.mainloop()
